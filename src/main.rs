@@ -1,26 +1,21 @@
-use std::env;
+#[macro_use]
+extern crate rocket;
 
-mod dcf;
-mod models;
-mod provider;
-mod request;
+use crate::evaluate::Evaluate;
+use rocket::serde::json::{json, Json, Value};
 
-#[async_std::main]
-async fn main() -> tide::Result<()> {
-    dotenv::dotenv().ok();
-    femme::with_level(femme::LevelFilter::Info);
+#[post("/", format = "json", data = "<evaluate>")]
+async fn discounted_method(evaluate: Json<Evaluate>) -> Value {
+    let evaluator = Evaluate::new(evaluate.into_inner());
+    evaluator.perform_discounted_free_cash_flow().await;
 
-    let mut app = tide::new();
-
-    app.at("/evaluate/dcf").post(dcf::calculate_dcf);
-    app.listen("0.0.0.0:8080").await?;
-
-    Ok(())
+    json!({ "status": "ok" })
 }
 
-pub fn env_var(key: &str) -> String {
-    match env::var(key) {
-        Ok(value) => value,
-        Err(e) => panic!("Cannot read the environment variable {}: {}", key, e),
-    }
+#[launch]
+fn rocket() -> _ {
+    rocket::build().mount("/stock/evaluate", routes![discounted_method])
 }
+
+mod evaluate;
+mod method;
