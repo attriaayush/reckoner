@@ -1,5 +1,4 @@
 use super::models::*;
-
 use surf::Result;
 
 use crate::{env_var, request};

@@ -1,5 +1,9 @@
-use dotenv;
 use std::env;
+
+mod dcf;
+mod models;
+mod provider;
+mod request;
 
 #[async_std::main]
 async fn main() -> tide::Result<()> {
@@ -20,8 +24,3 @@ pub fn env_var(key: &str) -> String {
         Err(e) => panic!("Cannot read the environment variable {}: {}", key, e),
     }
 }
-
-mod provider;
-mod request;
-mod models;
-mod dcf;
