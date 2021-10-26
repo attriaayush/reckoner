@@ -1,9 +1,21 @@
 [package]
-name = "stock-estimator"
+name = "estimator"
 version = "0.1.0"
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-rocket = "0.4.10"
+async-std = { version = "1.9", features = ["attributes"] }
+serde = { version="1.0", features=["derive"] }
+tide = "0.16"
+surf = "2.2.0"
+femme = "2.1.1"
+serde_json = "1.0.64"
+anyhow = "1.0.42"
+dotenv = "0.15.0"
+futures = "0.3.16"
+
+[build-dependencies]
+
+[[bin]]
+name = "estimator"
+path = "src/main.rs"

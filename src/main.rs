@@ -1,15 +1,27 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+use dotenv;
+use std::env;
 
-#[macro_use]
-extern crate rocket;
+#[async_std::main]
+async fn main() -> tide::Result<()> {
+    dotenv::dotenv().ok();
+    femme::with_level(femme::LevelFilter::Info);
 
-#[get("/dcf?<stock>")]
-fn discount_free_cash_flow(stock: Option<String>) -> String {
-    stock.map(|stock| format!("{}", stock)).unwrap()
+    let mut app = tide::new();
+
+    app.at("/evaluate/dcf").post(dcf::calculate_dcf);
+    app.listen("0.0.0.0:8080").await?;
+
+    Ok(())
 }
 
-fn main() {
-    rocket::ignite()
-        .mount("/perform", routes![discount_free_cash_flow])
-        .launch();
+pub fn env_var(key: &str) -> String {
+    match env::var(key) {
+        Ok(value) => value,
+        Err(e) => panic!("Cannot read the environment variable {}: {}", key, e),
+    }
 }
+
+mod provider;
+mod request;
+mod models;
+mod dcf;
