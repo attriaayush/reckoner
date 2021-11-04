@@ -16,10 +16,11 @@ _Note: P/E ratio evaluation method has not been implemented yet._
 
 ## Usage
 
-This project currently fetches all the finacial information from [IEX Cloud](https://iexcloud.io/) which under the hood uses [Refinitiv](https://www.refinitiv.com/en) for the cash flow projections for the next two years.
+This project currently fetches all the finacial information from [IEX Cloud](https://iexcloud.io/) which under the hood uses [Refinitiv](https://www.refinitiv.com/en) for the cash flow projections.
 
-- Once you have an IEX_API_KEY
-- Run `IEX_API_KEY=<key> cargo run`
+- Once you have an IEX_API_KEY.
+- Run `IEX_API_KEY=<key> cargo run`.
+- `/stock/evaluate` endpoint accepts `ticker_symbol` i.e. company's stock symbol and your `expected_return`. The stock's fair value in other words your buying entry point will be calculated based on your expected return.
 
 Example request:
 
@@ -33,6 +34,6 @@ Example request:
 Example response(in USD):
 
 ```json
-{ "estimated_fair_value": 215, "trading_value": 330 }
+{ "estimated_fair_value": 215 } 
 ```
 
