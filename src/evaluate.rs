@@ -19,8 +19,6 @@ impl Stock {
     }
 
     pub async fn perform_discounted_free_cash_flow(&self) -> Result<i64> {
-        // TODO:
-        // Validate whether discounted free cash flow can be performed on the requested stock
         let estimated_fair_value = DiscountedFreeCashflow::financials(&self)
             .await?
             .adjust_projected_estimates()
