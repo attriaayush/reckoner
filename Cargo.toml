@@ -1,5 +1,5 @@
 [package]
-name = "estimator"
+name = "reckoner"
 version = "0.1.0"
 edition = "2018"
 
@@ -14,5 +14,5 @@ iex-provider = { path = "./crates/iex-provider" }
 [build-dependencies]
 
 [[bin]]
-name = "estimator"
+name = "reckoner"
 path = "src/main.rs"
