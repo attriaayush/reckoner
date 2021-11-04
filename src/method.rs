@@ -1,14 +1,11 @@
 use anyhow::Result;
 use futures::try_join;
 use iex_provider::{
-    models::{
-        CompanyCashFlowResponse, CompanyIncomeStatementResponse, EstimateResponse,
-        EstimateResponseList,
-    },
+    models::{EstimateResponse, EstimateResponseList},
     provider::{Financials, Period},
 };
 
-use crate::evaluate::Evaluate;
+use crate::evaluate::Stock;
 
 const LAST: i8 = 2;
 const MILLION: f64 = 1000000.00;
@@ -64,7 +61,7 @@ impl DiscountedFreeCashflow {
         }
     }
 
-    pub async fn financials(e: &Evaluate) -> Result<Self> {
+    pub async fn financials(e: &Stock) -> Result<Self> {
         let provider = Financials::new(&e.ticker_symbol, &Period::Annual, LAST);
 
         let (outstanding_shares, projections) = try_join!(
