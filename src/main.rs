@@ -1,20 +1,46 @@
 #[macro_use]
 extern crate rocket;
 
-use crate::evaluate::Evaluate;
+use crate::evaluate::Stock;
+use rocket::http::{ContentType, Status};
+use rocket::response::{self, Responder, Response as RocketResponse};
 use rocket::serde::json::{json, Json, Value};
+use rocket::Request;
 
-#[post("/", format = "json", data = "<evaluate>")]
-async fn discounted_method(evaluate: Json<Evaluate>) -> Value {
-    let evaluator = Evaluate::new(evaluate.into_inner());
-    evaluator.perform_discounted_free_cash_flow().await;
+struct Response {
+    payload: Value,
+    status: Status,
+}
 
-    json!({ "status": "ok" })
+impl<'r, 'o: 'r> Responder<'r, 'o> for Response {
+    fn respond_to(self, req: &'r Request<'_>) -> response::Result<'o> {
+        RocketResponse::build_from(self.payload.respond_to(&req).unwrap())
+            .status(self.status)
+            .header(ContentType::JSON)
+            .ok()
+    }
+}
+
+#[post("/", format = "json", data = "<stock>")]
+async fn evaluate_fair_price(stock: Json<Stock>) -> Response {
+    match Stock::new(stock.into_inner())
+        .perform_discounted_free_cash_flow()
+        .await
+    {
+        Ok(estimated_fair_value) => Response {
+            payload: json!({ "estimated_fair_value": estimated_fair_value }),
+            status: Status::Ok,
+        },
+        Err(_) => Response {
+            payload: json!({ "error": "Something went wrong!"}),
+            status: Status::InternalServerError,
+        },
+    }
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/stock/evaluate", routes![discounted_method])
+    rocket::build().mount("/stock/evaluate", routes![evaluate_fair_price])
 }
 
 mod evaluate;

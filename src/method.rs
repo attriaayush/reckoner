@@ -1,14 +1,11 @@
-use anyhow::Result;
-use futures::try_join;
+use anyhow::{anyhow, Result};
 use iex_provider::{
-    models::{
-        CompanyCashFlowResponse, CompanyIncomeStatementResponse, EstimateResponse,
-        EstimateResponseList,
-    },
+    models::{EstimateResponse, EstimateResponseList},
     provider::{Financials, Period},
 };
+use rocket::log::private::warn;
 
-use crate::evaluate::Evaluate;
+use crate::evaluate::Stock;
 
 const LAST: i8 = 2;
 const MILLION: f64 = 1000000.00;
@@ -64,13 +61,18 @@ impl DiscountedFreeCashflow {
         }
     }
 
-    pub async fn financials(e: &Evaluate) -> Result<Self> {
+    pub async fn financials(e: &Stock) -> Result<Self> {
         let provider = Financials::new(&e.ticker_symbol, &Period::Annual, LAST);
 
-        let (outstanding_shares, projections) = try_join!(
-            provider.request_outstanding_shares(),
-            provider.request_estimates()
-        )?;
+        let outstanding_shares = provider.request_outstanding_shares().await.map_err(|e| {
+            warn!("{}", e);
+            anyhow!("Not a valid ticker symbol")
+        })?;
+
+        let projections = provider.request_estimates().await.map_err(|e| {
+            warn!("{}", e);
+            anyhow!("Unable to fetch requested estimates")
+        })?;
 
         Ok(DiscountedFreeCashflow {
             outstanding_shares,
