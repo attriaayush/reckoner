@@ -11,6 +11,7 @@ tokio = { version = "1", features = ["full"] }
 serde = { version="1.0", features=["derive"] }
 anyhow = "1.0.42"
 serde_json = "1.0.64"
+dotenv_codegen = "0.15.0"
 
 [lib]
 name = "iex_provider"
