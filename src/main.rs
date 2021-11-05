@@ -23,18 +23,19 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for Response {
 
 #[post("/", format = "json", data = "<stock>")]
 async fn evaluate_fair_price(stock: Json<Stock>) -> Response {
-    match Stock::new(stock.into_inner())
+    if let Ok(estimated_fair_value) = Stock::new(stock.into_inner())
         .perform_discounted_free_cash_flow()
         .await
     {
-        Ok(estimated_fair_value) => Response {
+        Response {
             payload: json!({ "estimated_fair_value": estimated_fair_value }),
             status: Status::Ok,
-        },
-        Err(_) => Response {
+        }
+    } else {
+        Response {
             payload: json!({ "error": "Something went wrong!"}),
             status: Status::InternalServerError,
-        },
+        }
     }
 }
 
