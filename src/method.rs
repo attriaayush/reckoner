@@ -3,7 +3,7 @@ use iex_provider::{
     models::{EstimateResponse, EstimateResponseList},
     provider::{Financials, Period},
 };
-use rocket::log::private::warn;
+use rocket::tokio::try_join;
 
 use crate::evaluate::Stock;
 
@@ -64,20 +64,21 @@ impl DiscountedFreeCashflow {
     pub async fn financials(e: &Stock) -> Result<Self> {
         let provider = Financials::new(&e.ticker_symbol, &Period::Annual, LAST);
 
-        let outstanding_shares = provider.request_outstanding_shares().await.map_err(|e| {
-            warn!("{}", e);
-            anyhow!("Not a valid ticker symbol")
-        })?;
+        let outstanding_shares = provider.request_outstanding_shares();
+        let projections = provider.request_estimates();
 
-        let projections = provider.request_estimates().await.map_err(|e| {
-            warn!("{}", e);
-            anyhow!("Unable to fetch requested estimates")
-        })?;
+        let response = try_join!(outstanding_shares, projections);
 
-        Ok(DiscountedFreeCashflow {
-            outstanding_shares,
-            projections,
-        })
+        match response {
+            Ok((outstanding_shares, projections)) => Ok(DiscountedFreeCashflow {
+                outstanding_shares,
+                projections,
+            }),
+            Err(e) => {
+                warn!("{}", e);
+                Err(anyhow!(e))
+            }
+        }
     }
 
     pub fn project_fair_value(&self, expected_return: f64, perpetual_growth: f64) -> i64 {

@@ -11,15 +11,15 @@ pub struct Stock {
 }
 
 impl Stock {
-    pub fn new(self) -> Self {
+    pub fn new(stock: Stock) -> Self {
         Stock {
-            ticker_symbol: self.ticker_symbol,
-            expected_return: self.expected_return,
+            ticker_symbol: stock.ticker_symbol,
+            expected_return: stock.expected_return,
         }
     }
 
     pub async fn perform_discounted_free_cash_flow(&self) -> Result<i64> {
-        let estimated_fair_value = DiscountedFreeCashflow::financials(&self)
+        let estimated_fair_value = DiscountedFreeCashflow::financials(self)
             .await?
             .adjust_projected_estimates()
             .project_fair_value(self.expected_return, 2.50);
