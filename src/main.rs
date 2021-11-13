@@ -14,7 +14,7 @@ struct Response {
 
 impl<'r, 'o: 'r> Responder<'r, 'o> for Response {
     fn respond_to(self, req: &'r Request<'_>) -> response::Result<'o> {
-        RocketResponse::build_from(self.payload.respond_to(&req).unwrap())
+        RocketResponse::build_from(self.payload.respond_to(req).unwrap())
             .status(self.status)
             .header(ContentType::JSON)
             .ok()
