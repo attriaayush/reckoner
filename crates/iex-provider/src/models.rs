@@ -9,7 +9,7 @@ pub struct AnnualCashFlow {
     pub net_income: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AnnualIncomeStatement {
     pub fiscal_year: u16,
