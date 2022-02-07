@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate rocket;
 
+mod wacc;
+
 use crate::evaluate::Stock;
 use rocket::http::{ContentType, Status};
 use rocket::response::{self, Responder, Response as RocketResponse};
