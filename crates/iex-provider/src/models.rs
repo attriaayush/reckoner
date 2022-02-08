@@ -13,8 +13,8 @@ pub struct AnnualCashFlow {
 #[serde(rename_all = "camelCase")]
 pub struct AnnualIncomeStatement {
     pub fiscal_year: u16,
-    pub total_revenue: i64,
-    pub net_income: i64,
+    pub total_revenue: f64,
+    pub net_income: f64,
     pub interest_income: f64,
     pub income_tax: f64,
     pub pretax_income: f64,
@@ -52,7 +52,6 @@ pub struct CompanyStats {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CompanyCashFlowResponse {
-    symbol: String,
     pub cashflow: Vec<AnnualCashFlow>,
 }
 
@@ -75,7 +74,6 @@ pub struct EstimateResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EstimateResponseList {
-    pub symbol: String,
     pub estimates: Vec<EstimateResponse>,
 }
 
