@@ -15,6 +15,39 @@ pub struct AnnualIncomeStatement {
     pub fiscal_year: u16,
     pub total_revenue: i64,
     pub net_income: i64,
+    pub interest_income: f64,
+    pub income_tax: f64,
+    pub pretax_income: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BalanceSheet {
+    pub long_term_debt: f64,
+    pub total_current_liabilities: f64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BalanceSheetResponse {
+    pub balancesheet: Vec<BalanceSheet>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TreasuryRate {
+    pub value: f64
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TreasuryRateResponse { 
+    pub rate: Vec<TreasuryRate> 
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CompanyStats {
+    pub shares_outstanding: i64,
+    pub marketcap: f64,
+    pub beta: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

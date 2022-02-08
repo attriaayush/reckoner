@@ -22,7 +22,7 @@ impl Stock {
         let estimated_fair_value = DiscountedFreeCashflow::financials(self)
             .await?
             .adjust_projected_estimates()
-            .project_fair_value(self.expected_return, 2.50);
+            .project_fair_value(2.50);
 
         Ok(estimated_fair_value)
     }
