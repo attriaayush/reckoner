@@ -5,7 +5,7 @@ use iex_provider::{
 };
 use rocket::tokio::try_join;
 
-use crate::evaluate::Stock;
+use crate::{evaluate::Stock, wacc::Wacc};
 
 const LAST: i8 = 2;
 const MILLION: f64 = 1000000.00;
@@ -14,6 +14,7 @@ const MILLION: f64 = 1000000.00;
 pub struct DiscountedFreeCashflow {
     outstanding_shares: i64,
     projections: EstimateResponseList,
+    required_rate_of_return: f64
 }
 
 impl DiscountedFreeCashflow {
@@ -64,16 +65,36 @@ impl DiscountedFreeCashflow {
     pub async fn financials(e: &Stock) -> Result<Self> {
         let provider = Financials::new(&e.ticker_symbol, &Period::Annual, LAST);
 
-        let outstanding_shares = provider.request_outstanding_shares();
-        let projections = provider.request_estimates();
-
-        let response = try_join!(outstanding_shares, projections);
+        let response = try_join!(
+            provider.request_income_statement(),
+            provider.request_balance_sheet(),
+            provider.request_ten_year_treasury_rate(),
+            provider.request_company_stats(),
+            provider.request_estimates()
+        );
 
         match response {
-            Ok((outstanding_shares, projections)) => Ok(DiscountedFreeCashflow {
-                outstanding_shares,
-                projections,
-            }),
+            Ok((income_statement, balance, treasury_rate, stats, projections)) => {
+                let income_statement = income_statement.income.first().unwrap();
+                let balance_sheet = balance.balancesheet.first().unwrap();
+
+                let required_rate_of_return = Wacc {
+                    interest_income: income_statement.interest_income,
+                    long_term_debt: balance_sheet.long_term_debt,
+                    total_current_liabilities: balance_sheet.total_current_liabilities,
+                    pre_tax: income_statement.pretax_income,
+                    income_tax: income_statement.income_tax,
+                    ten_year_treasury_rate: treasury_rate,
+                    beta: stats.beta,
+                    market_cap: stats.marketcap,
+                }.generate_wacc();
+
+                Ok(DiscountedFreeCashflow {
+                    outstanding_shares: stats.shares_outstanding,
+                    projections,
+                    required_rate_of_return
+                })
+            }
             Err(e) => {
                 warn!("{}", e);
                 Err(anyhow!(e))
@@ -81,9 +102,9 @@ impl DiscountedFreeCashflow {
         }
     }
 
-    pub fn project_fair_value(&self, expected_return: f64, perpetual_growth: f64) -> i64 {
+    pub fn project_fair_value(&self, perpetual_growth: f64) -> i64 {
         let perpetual_growth = perpetual_growth / 100.00;
-        let expected_return = expected_return / 100.00;
+        let expected_return = self.required_rate_of_return / 100.00;
 
         let discounted_terminal_value =
             self.discounted_terminal_value(&expected_return, &perpetual_growth);

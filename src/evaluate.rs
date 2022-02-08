@@ -7,14 +7,12 @@ use crate::method::DiscountedFreeCashflow;
 #[serde(crate = "rocket::serde")]
 pub struct Stock {
     pub ticker_symbol: String,
-    pub expected_return: f64,
 }
 
 impl Stock {
     pub fn new(stock: Stock) -> Self {
         Stock {
             ticker_symbol: stock.ticker_symbol,
-            expected_return: stock.expected_return,
         }
     }
 
@@ -22,7 +20,7 @@ impl Stock {
         let estimated_fair_value = DiscountedFreeCashflow::financials(self)
             .await?
             .adjust_projected_estimates()
-            .project_fair_value(self.expected_return, 2.50);
+            .project_fair_value(2.50);
 
         Ok(estimated_fair_value)
     }
