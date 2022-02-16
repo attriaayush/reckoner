@@ -18,13 +18,13 @@ impl std::fmt::Display for Period {
 
 #[derive(Debug)]
 pub struct Financials<'a> {
-    ticker_symbol: &'a str,
+    ticker_symbol: String,
     period: &'a Period,
     last: i8,
 }
 
 impl<'a> Financials<'a> {
-    pub fn new(ticker_symbol: &'a str, period: &'a Period, last: i8) -> Self {
+    pub fn new(ticker_symbol: String, period: &'a Period, last: i8) -> Self {
         Financials {
             ticker_symbol,
             period,

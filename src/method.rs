@@ -3,9 +3,9 @@ use iex_provider::{
     models::{EstimateResponse, EstimateResponseList},
     provider::{Financials, Period},
 };
-use rocket::tokio::try_join;
 
-use crate::{evaluate::Stock, wacc::Wacc};
+use crate::wacc::Wacc;
+use futures::try_join;
 
 const LAST: i8 = 2;
 const MILLION: f64 = 1000000.00;
@@ -14,10 +14,30 @@ const MILLION: f64 = 1000000.00;
 pub struct DiscountedFreeCashflow {
     outstanding_shares: i64,
     projections: EstimateResponseList,
-    required_rate_of_return: f64
+    required_rate_of_return: f64,
 }
 
 impl DiscountedFreeCashflow {
+    pub fn adjust_projected_estimates(self) -> Self {
+        DiscountedFreeCashflow {
+            projections: EstimateResponseList {
+                estimates: self
+                    .projections
+                    .estimates
+                    .iter()
+                    .map(|estimate| EstimateResponse {
+                        consensus_CPS: estimate.consensus_CPS * (self.outstanding_shares as f64),
+                        consensus_NET: estimate.consensus_NET * MILLION,
+                        consensus_SAL: estimate.consensus_SAL * MILLION,
+                        consensus_CPX: -(estimate.consensus_CPX * MILLION),
+                        fiscal_period: estimate.fiscal_period.clone(),
+                    })
+                    .collect(),
+            },
+            ..self
+        }
+    }
+
     fn discount_estimates_to_today(&self, expected_return: &f64) -> i64 {
         let total_discounted_value_today: i64 = self
             .projections
@@ -37,33 +57,12 @@ impl DiscountedFreeCashflow {
             * (1.0 + perpetual_growth)
             / (expected_return - perpetual_growth);
 
-        terminal_value = terminal_value / (1.0 + expected_return).powf(LAST as f64);
+        terminal_value /= (1.0 + expected_return).powf(LAST as f64);
         terminal_value as i64
     }
 
-    pub fn adjust_projected_estimates(self) -> Self {
-        DiscountedFreeCashflow {
-            projections: EstimateResponseList {
-                estimates: self
-                    .projections
-                    .estimates
-                    .iter()
-                    .map(|estimate| EstimateResponse {
-                        consensus_CPS: estimate.consensus_CPS * (self.outstanding_shares as f64),
-                        consensus_NET: estimate.consensus_NET * MILLION,
-                        consensus_SAL: estimate.consensus_SAL * MILLION,
-                        consensus_CPX: -(estimate.consensus_CPX * MILLION),
-                        fiscal_period: estimate.fiscal_period.clone(),
-                    })
-                    .collect(),
-                ..self.projections
-            },
-            ..self
-        }
-    }
-
-    pub async fn financials(e: &Stock) -> Result<Self> {
-        let provider = Financials::new(&e.ticker_symbol, &Period::Annual, LAST);
+    pub async fn financials(ticker_symbol: String) -> Result<Self> {
+        let provider = Financials::new(ticker_symbol, &Period::Annual, LAST);
 
         let response = try_join!(
             provider.request_income_statement(),
@@ -87,18 +86,16 @@ impl DiscountedFreeCashflow {
                     ten_year_treasury_rate: treasury_rate,
                     beta: stats.beta,
                     market_cap: stats.marketcap,
-                }.generate_wacc();
+                }
+                .generate_wacc();
 
                 Ok(DiscountedFreeCashflow {
                     outstanding_shares: stats.shares_outstanding,
                     projections,
-                    required_rate_of_return
+                    required_rate_of_return,
                 })
             }
-            Err(e) => {
-                warn!("{}", e);
-                Err(anyhow!(e))
-            }
+            Err(e) => Err(anyhow!(e)),
         }
     }
 
