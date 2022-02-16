@@ -21,23 +21,5 @@ _*Note: P/E ratio evaluation method has not been implemented yet.*_
 Using [IEX Cloud](https://iexcloud.io/) as financials provider which under the hood uses [Refinitiv](https://www.refinitiv.com/en) for the cash flow projections and estimates.
 
 - Once you have an IEX_API_KEY, create an `.env` file and add `IEX_API_KEY=<key>`
-- Run `cargo run`.
+- Run `cargo run --  --tickers "AAPL, GOOGL, MSFT"`.
 
-### API
-
-| Method | Endpoint          | Params                                                                                                                                                       |
-| ------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| POST   | `/stock/evaluate` &nbsp;      | `ticker_symbol` - Symbol for the company's stock <br /> <br />`expected return` - The return you would like to make from that particular stock over atleast next 2 years. |
-
-
-Example request:
-
-```bash
-curl -d '{"ticker_symbol": "MA", "expected_return": 7.5}' -H "Content-Type: application/json" http://127.0.0.1:8000/stock/evaluate
-```
-
-Example response(in USD):
-
-```json
-{ "estimated_fair_value": 215 }
-```
