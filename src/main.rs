@@ -18,11 +18,18 @@ async fn main() {
     let tasks: Vec<_> = args
         .split(',')
         .map(|sub| sub.trim().to_owned())
-        .map(|ticker| tokio::task::spawn(evaluate::perform_discounted_free_cash_flow(ticker)))
+        .map(|ticker| {
+            let instance = evaluate::Stock::new(ticker);
+            tokio::task::spawn(instance.perform_discounted_free_cash_flow())
+        })
         .collect();
 
     for task in tasks {
         let result = task.await.unwrap().unwrap();
-        println!("Fair value for {} is {}", result.stock, result.fair_value);
+        println!(
+            "Fair value for {} is {}",
+            result.ticker,
+            result.fair_value.unwrap()
+        );
     }
 }

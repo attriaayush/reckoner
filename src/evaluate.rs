@@ -2,22 +2,31 @@ use crate::method::DiscountedFreeCashflow;
 use anyhow::Result;
 
 #[derive(Debug)]
-pub struct FairValue {
-    pub fair_value: i64,
-    pub stock: String,
+pub struct Stock {
+    pub ticker: String,
+    pub fair_value: Option<i64>,
 }
 
-pub async fn perform_discounted_free_cash_flow(ticker_symbol: String) -> Result<FairValue> {
-    let stock = ticker_symbol.clone();
-    let estimated_fair_value = DiscountedFreeCashflow::financials(ticker_symbol)
-        .await?
-        .adjust_projected_estimates()
-        .project_fair_value(2.50);
+impl Stock {
+    pub fn new(ticker: String) -> Self {
+        Stock {
+            ticker,
+            fair_value: None,
+        }
+    }
 
-    let value = FairValue {
-        fair_value: estimated_fair_value,
-        stock,
-    };
+    pub async fn perform_discounted_free_cash_flow(self) -> Result<Stock> {
+        let ticker = self.ticker.clone();
+        let estimated_fair_value = DiscountedFreeCashflow::financials(self.ticker)
+            .await?
+            .adjust_projected_estimates()
+            .project_fair_value(2.50);
 
-    Ok(value)
+        let value = Stock {
+            ticker,
+            fair_value: Some(estimated_fair_value),
+        };
+
+        Ok(value)
+    }
 }
