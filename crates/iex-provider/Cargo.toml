@@ -16,3 +16,6 @@ lazy_static = "1.4.0"
 [lib]
 name = "iex_provider"
 path = "src/lib.rs"
+
+[profile.dev]
+opt-level = 3
