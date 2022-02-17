@@ -36,7 +36,7 @@ impl<'a> Financials<'a> {
         let url = format!(
             "{base_url}/stock/{ticker_symbol}/cash-flow?period={period}&last={last}&token={token}",
             base_url = IEX_BASE_URL,
-            token = IEX_API_KEY,
+            token = *IEX_API_KEY,
             ticker_symbol = self.ticker_symbol,
             period = self.period,
             last = self.last
@@ -50,7 +50,7 @@ impl<'a> Financials<'a> {
         let url = format!(
             "{base_url}/stock/{ticker_symbol}/estimates?period={period}&last={last}&token={token}",
             base_url = IEX_BASE_URL,
-            token = IEX_API_KEY,
+            token = *IEX_API_KEY,
             ticker_symbol = self.ticker_symbol,
             period = self.period,
             last = self.last
@@ -64,7 +64,7 @@ impl<'a> Financials<'a> {
         let url = format!(
             "{base_url}/stock/{ticker_symbol}/income?period={period}&last={last}&token={token}",
             base_url = IEX_BASE_URL,
-            token = IEX_API_KEY,
+            token = *IEX_API_KEY,
             ticker_symbol = self.ticker_symbol,
             period = self.period,
             last = self.last
@@ -78,7 +78,7 @@ impl<'a> Financials<'a> {
         let url = format!(
             "{base_url}/stock/{ticker_symbol}/stats?token={token}",
             base_url = IEX_BASE_URL,
-            token = IEX_API_KEY,
+            token = *IEX_API_KEY,
             ticker_symbol = self.ticker_symbol
         );
 
@@ -90,7 +90,7 @@ impl<'a> Financials<'a> {
         let url = format!(
             "{base_url}/stock/{ticker_symbol}/balance-sheet?period={period}&token={token}",
             base_url = IEX_BASE_URL,
-            token = IEX_API_KEY,
+            token = *IEX_API_KEY,
             ticker_symbol = self.ticker_symbol,
             period = self.period
         );
@@ -103,7 +103,7 @@ impl<'a> Financials<'a> {
         let url = format!(
             "{base_url}/time-series/treasury/DGS10?token={token}",
             base_url = IEX_BASE_URL,
-            token = IEX_API_KEY,
+            token = *IEX_API_KEY,
         );
 
         let response = request::get::<Vec<TreasuryRate>>(&url).await.unwrap();
